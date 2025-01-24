@@ -1,0 +1,46 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+    
+      {
+        "Sid": "DenyNonHTTPS",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": "s3:*",
+        "Resource": [
+          "arn:aws:s3:::input-audio-bucket1379",
+          "arn:aws:s3:::input-audio-bucket1379/*"
+        ],
+        "Condition": {
+          "Bool": { "aws:SecureTransport": "false" }
+        }
+      },
+      
+      {
+        "Sid": "AllowProcessingServices",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": [
+            "arn:aws:iam::<ACCOUNT_ID>:role/PCA-Lambda-Role",
+            "arn:aws:iam::<ACCOUNT_ID>:role/PCA-StepFunctions-Role"
+          ]
+        },
+        "Action": ["s3:GetObject", "s3:ListBucket"],
+        "Resource": [
+          "arn:aws:s3:::input-audio-bucket1379",
+          "arn:aws:s3:::input-audio-bucket1379/*"
+        ]
+      },
+      
+      {
+        "Sid": "RequireEncryption",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": "s3:PutObject",
+        "Resource": "arn:aws:s3:::input-audio-bucket1379/*",
+        "Condition": {
+          "Null": { "s3:x-amz-server-side-encryption": "true" }
+        }
+      }
+    ]
+  }
