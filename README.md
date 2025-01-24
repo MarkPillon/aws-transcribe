@@ -120,7 +120,7 @@ Frontend:
 
     - S3 (AES-256), DynamoDB (AWS KMS), and TLS for data in transit.
 
-7. Optional Components
+### 7. Optional Components
 - Amazon Kendra:
 
     - Indexes transcripts for natural language search (e.g., "Find calls mentioning 'refund policy'").
