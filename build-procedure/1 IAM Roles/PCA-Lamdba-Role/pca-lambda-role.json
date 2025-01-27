@@ -1,43 +1,54 @@
 {
-    "Version": "2012-10-17",
-    "Statement": [
-     
+  "Version": "2012-10-17",
+  "Statement": [
       {
-        "Effect": "Allow",
-        "Action": [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:ListBucket"
-        ],
-        "Resource": [
-          "arn:aws:s3:::input-audio-bucket1379/*",
-          "arn:aws:s3:::metadata-output-bucket1379/*"
-        ]
+          "Effect": "Allow",
+          "Action": [
+              "s3:GetObject",
+              "s3:PutObject",
+              "s3:DeleteObject"
+          ],
+          "Resource": [
+              "arn:aws:s3:::input-audio-bucket1379/*",
+              "arn:aws:s3:::metadata-output-bucket1379/*"
+          ]
       },
-     
       {
-        "Effect": "Allow",
-        "Action": "states:StartExecution",
-        "Resource": "arn:aws:states:<REGION>:<ACCOUNT_ID>:stateMachine:*"
+          "Effect": "Allow",
+          "Action": [
+              "states:StartExecution",
+              "states:DescribeExecution"
+          ],
+          "Resource": [
+              "arn:aws:states:us-east-1:593793068175:stateMachine:MyStateMachine-s2t060l08",
+              "arn:aws:states:us-east-1:593793068175:execution:MyStateMachine-s2t060l08:*"
+          ]
       },
-
       {
-        "Effect": "Allow",
-        "Action": [
-          "dynamodb:PutItem",
-          "dynamodb:UpdateItem"
-        ],
-        "Resource": "arn:aws:dynamodb:<REGION>:<ACCOUNT_ID>:table/CallAnalytics"
+          "Effect": "Allow",
+          "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents"
+          ],
+          "Resource": "arn:aws:logs:*:*:*"
       },
-
       {
-        "Effect": "Allow",
-        "Action": [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ],
-        "Resource": "*"
+          "Effect": "Allow",
+          "Action": [
+              "dynamodb:PutItem",
+              "dynamodb:BatchWriteItem",
+              "dynamodb:UpdateItem"
+          ],
+          "Resource": [
+              "arn:aws:dynamodb:us-east-1:593793068175:table/CallAnalytics",
+              "arn:aws:dynamodb:us-east-1:593793068175:table/CallAnalytics/index/*"
+          ]
+      },
+      {
+          "Effect": "Allow",
+          "Action": "bedrock:InvokeModel",
+          "Resource": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-instant-v1"
       }
-    ]
-  }
+  ]
+}

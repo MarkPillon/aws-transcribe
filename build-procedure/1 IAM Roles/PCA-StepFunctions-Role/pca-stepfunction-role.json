@@ -1,41 +1,51 @@
 {
-    "Version": "2012-10-17",
-    "Statement": [
-     
+  "Version": "2012-10-17",
+  "Statement": [
       {
-        "Effect": "Allow",
-        "Action": [
-          "transcribe:StartTranscriptionJob",
-          "transcribe:GetTranscriptionJob"
-        ],
-        "Resource": "*"
+          "Effect": "Allow",
+          "Action": [
+              "transcribe:StartTranscriptionJob",
+              "transcribe:GetTranscriptionJob",
+              "transcribe:TagResource"
+          ],
+          "Resource": "*"
       },
-    
       {
-        "Effect": "Allow",
-        "Action": [
-          "comprehend:DetectSentiment",
-          "comprehend:DetectEntities"
-        ],
-        "Resource": "*"
+          "Effect": "Allow",
+          "Action": "s3:ListBucket",
+          "Resource": [
+              "arn:aws:s3:::input-audio-bucket1379",
+              "arn:aws:s3:::metadata-output-bucket1379"
+          ]
       },
-   
       {
-        "Effect": "Allow",
-        "Action": [
-          "s3:GetObject",
-          "s3:PutObject"
-        ],
-        "Resource": [
-          "arn:aws:s3:::input-audio-bucket1379/*",
-          "arn:aws:s3:::metadata-output-bucket1379/*"
-        ]
+          "Effect": "Allow",
+          "Action": [
+              "s3:GetObject",
+              "s3:PutObject",
+              "s3:PutObjectAcl"
+          ],
+          "Resource": [
+              "arn:aws:s3:::input-audio-bucket1379/*",
+              "arn:aws:s3:::metadata-output-bucket1379/*",
+              "arn:aws:s3:::metadata-output-bucket1379/processed/*"
+          ]
       },
-      
       {
-        "Effect": "Allow",
-        "Action": "lambda:InvokeFunction",
-        "Resource": "arn:aws:lambda:<REGION>:<ACCOUNT_ID>:function:*"
+          "Effect": "Allow",
+          "Action": [
+              "comprehend:DetectSentiment",
+              "comprehend:DetectEntities"
+          ],
+          "Resource": "*"
+      },
+      {
+          "Effect": "Allow",
+          "Action": "lambda:InvokeFunction",
+          "Resource": [
+              "arn:aws:lambda:us-east-1:593793068175:function:ProcessTranscript-Lambda",
+              "arn:aws:lambda:us-east-1:593793068175:function:GenerateInsights-Lambda"
+          ]
       }
-    ]
-  }
+  ]
+}

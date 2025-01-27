@@ -1,39 +1,53 @@
 {
-    "Version": "2012-10-17",
-    "Statement": [
-    
+  "Version": "2012-10-17",
+  "Statement": [
       {
-        "Sid": "DenyNonHTTPS",
-        "Effect": "Deny",
-        "Principal": "*",
-        "Action": "s3:*",
-        "Resource": [
-          "arn:aws:s3:::metadata-output-bucket1379",
-          "arn:aws:s3:::metadata-output-bucket1379/*"
-        ],
-        "Condition": {
-          "Bool": { "aws:SecureTransport": "false" }
-        }
+          "Sid": "DenyPublicAccess",
+          "Effect": "Deny",
+          "Principal": "*",
+          "Action": "s3:*",
+          "Resource": [
+              "arn:aws:s3:::metadata-output-bucket1379",
+              "arn:aws:s3:::metadata-output-bucket1379/*"
+          ],
+          "Condition": {
+              "Bool": {
+                  "aws:SecureTransport": "false"
+              }
+          }
       },
-      
       {
-        "Sid": "AllowStepFunctionsWrite",
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::<ACCOUNT_ID>:role/PCA-StepFunctions-Role"
-        },
-        "Action": "s3:PutObject",
-        "Resource": "arn:aws:s3:::metadata-output-bucket1379/*"
+          "Sid": "AllowTranscribeWrite",
+          "Effect": "Allow",
+          "Principal": {
+              "Service": "transcribe.amazonaws.com"
+          },
+          "Action": "s3:PutObject",
+          "Resource": "arn:aws:s3:::metadata-output-bucket1379/*",
+          "Condition": {
+              "StringEquals": {
+                  "aws:SourceAccount": "593793068175"
+              }
+          }
       },
-      
       {
-        "Sid": "AllowLambdaRead",
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::<ACCOUNT_ID>:role/PCA-Lambda-Role"
-        },
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::metadata-output-bucket1379/*"
+          "Sid": "AllowProcessingServices",
+          "Effect": "Allow",
+          "Principal": {
+              "AWS": [
+                  "arn:aws:iam::593793068175:role/service-role/StepFunctions-MyStateMachine-s2t060l08-role-htcj57sbd",
+                  "arn:aws:iam::593793068175:role/PCA-Lambda-Role"
+              ]
+          },
+          "Action": [
+              "s3:PutObject",
+              "s3:PutObjectAcl",
+              "s3:GetObject"
+          ],
+          "Resource": [
+              "arn:aws:s3:::metadata-output-bucket1379/*",
+              "arn:aws:s3:::metadata-output-bucket1379/processed/*"
+          ]
       }
-    ]
-  }
+  ]
+}
