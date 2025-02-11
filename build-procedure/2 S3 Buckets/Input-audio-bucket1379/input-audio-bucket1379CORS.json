@@ -1,0 +1,19 @@
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "GET",
+            "PUT",
+            "POST"
+        ],
+        "AllowedOrigins": [
+            "https://5173-markpillon-fullstackuof-s3l8rwyh3v1.ws-us117.gitpod.io"
+        ],
+        "ExposeHeaders": [
+            "ETag"
+        ],
+        "MaxAgeSeconds": 3000
+    }
+]

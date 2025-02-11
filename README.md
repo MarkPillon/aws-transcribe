@@ -1,6 +1,9 @@
 # Building Post-Call Analytics on AWS Step-by-Step
 
-It's a Post call analytics for your contact center with Amazon language AI services.  The link is here: https://aws.amazon.com/blogs/machine-learning/post-call-analytics-for-your-contact-center-with-amazon-language-ai-services/
+It's a Post call analytics for your contact center with Amazon language AI services.  The link is here from where I got the project idea: https://aws.amazon.com/blogs/machine-learning/post-call-analytics-for-your-contact-center-with-amazon-language-ai-services/
+
+Here's my State Machine Flow:
+![alt text](image.png)
 
 ## High-Level Architecture Diagram
 
@@ -29,7 +32,7 @@ It's a Post call analytics for your contact center with Amazon language AI servi
 [Amazon DynamoDB (Call Metadata)]  
        │  
        ▼  
-[Web App (React/Angular/etc.)]  
+[Web App (React)]  
        ├─▶ [Query DynamoDB for Call List]  
        └─▶ [Fetch Details from S3/JSON]
 ```

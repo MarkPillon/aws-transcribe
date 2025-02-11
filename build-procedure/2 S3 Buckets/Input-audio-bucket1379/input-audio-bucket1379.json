@@ -1,58 +1,67 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-      {
-          "Sid": "DenyInsecureTransport",
-          "Effect": "Deny",
-          "Principal": "*",
-          "Action": "s3:*",
-          "Resource": [
-              "arn:aws:s3:::input-audio-bucket1379",
-              "arn:aws:s3:::input-audio-bucket1379/*"
-          ],
-          "Condition": {
-              "Bool": {
-                  "aws:SecureTransport": "false"
-              }
-          }
-      },
-      {
-          "Sid": "AllowLambdaAndStepFunctionsList",
-          "Effect": "Allow",
-          "Principal": {
-              "AWS": [
-                  "arn:aws:iam::593793068175:role/PCA-Lambda-Role",
-                  "arn:aws:iam::593793068175:role/PCA-StepFunctions-Role"
-              ]
-          },
-          "Action": "s3:ListBucket",
-          "Resource": "arn:aws:s3:::input-audio-bucket1379"
-      },
-      {
-          "Sid": "AllowLambdaAndStepFunctionsRead",
-          "Effect": "Allow",
-          "Principal": {
-              "AWS": [
-                  "arn:aws:iam::593793068175:role/PCA-Lambda-Role",
-                  "arn:aws:iam::593793068175:role/PCA-StepFunctions-Role"
-              ]
-          },
-          "Action": "s3:GetObject",
-          "Resource": "arn:aws:s3:::input-audio-bucket1379/*"
-      },
-      {
-          "Sid": "AllowTranscribeRead",
-          "Effect": "Allow",
-          "Principal": {
-              "Service": "transcribe.amazonaws.com"
-          },
-          "Action": "s3:GetObject",
-          "Resource": "arn:aws:s3:::input-audio-bucket1379/*",
-          "Condition": {
-              "StringEquals": {
-                  "aws:SourceAccount": "593793068175"
-              }
-          }
-      }
-  ]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyInsecureTransport",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::input-audio-bucket1379",
+                "arn:aws:s3:::input-audio-bucket1379/*"
+            ],
+            "Condition": {
+                "Bool": {
+                    "aws:SecureTransport": "false"
+                }
+            }
+        },
+        {
+            "Sid": "AllowLambdaAndStepFunctionsList",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::593793068175:role/PCA-Lambda-Role",
+                    "arn:aws:iam::593793068175:role/PCA-StepFunctions-Role"
+                ]
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::input-audio-bucket1379"
+        },
+        {
+            "Sid": "AllowLambdaAndStepFunctionsRead",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::593793068175:role/PCA-Lambda-Role",
+                    "arn:aws:iam::593793068175:role/PCA-StepFunctions-Role"
+                ]
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::input-audio-bucket1379/*"
+        },
+        {
+            "Sid": "AllowTranscribeRead",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "transcribe.amazonaws.com"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::input-audio-bucket1379/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:SourceAccount": "593793068175"
+                }
+            }
+        },
+        {
+            "Sid": "AllowLambdaUploads",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::593793068175:role/PCA-Lambda-Role"
+            },
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::input-audio-bucket1379/*"
+        }
+    ]
 }

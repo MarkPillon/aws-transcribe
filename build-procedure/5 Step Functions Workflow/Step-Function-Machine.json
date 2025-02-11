@@ -1,0 +1,180 @@
+{
+    "Comment": "Post-Call Analytics Workflow with callId Propagation",
+    "StartAt": "StartTranscriptionJob",
+    "States": {
+      "StartTranscriptionJob": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:transcribe:startTranscriptionJob",
+        "Parameters": {
+          "TranscriptionJobName.$": "States.Format('TranscribeJob-{}-{}', $.callId, $$.Execution.Name)",
+          "LanguageCode": "en-US",
+          "Media": {
+            "MediaFileUri.$": "States.Format('s3://input-audio-bucket1379/{}', $.key)"
+          },
+          "OutputBucketName": "metadata-output-bucket1379",
+          "Settings": {
+            "ShowSpeakerLabels": true,
+            "MaxSpeakerLabels": 2
+          },
+          "Tags": [
+            {
+              "Key": "callId",
+              "Value.$": "$.callId"
+            }
+          ]
+        },
+        "ResultPath": "$.TranscriptionJob",
+        "Next": "WaitForTranscription",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Transcribe.ConflictException"
+            ],
+            "IntervalSeconds": 10,
+            "MaxAttempts": 3,
+            "BackoffRate": 2
+          }
+        ]
+      },
+      "WaitForTranscription": {
+        "Type": "Wait",
+        "Seconds": 30,
+        "Next": "CheckTranscriptionStatus"
+      },
+      "CheckTranscriptionStatus": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:transcribe:getTranscriptionJob",
+        "Parameters": {
+          "TranscriptionJobName.$": "$.TranscriptionJob.TranscriptionJob.TranscriptionJobName"
+        },
+        "ResultPath": "$.TranscriptionJob",
+        "Next": "IsTranscriptionComplete",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "IntervalSeconds": 30,
+            "MaxAttempts": 10,
+            "BackoffRate": 2
+          }
+        ]
+      },
+      "IsTranscriptionComplete": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.TranscriptionJob.TranscriptionJob.TranscriptionJobStatus",
+            "StringEquals": "COMPLETED",
+            "Next": "ProcessTranscript"
+          },
+          {
+            "Variable": "$.TranscriptionJob.TranscriptionJob.TranscriptionJobStatus",
+            "StringEquals": "FAILED",
+            "Next": "HandleTranscriptionFailure"
+          }
+        ],
+        "Default": "WaitForTranscription"
+      },
+      "HandleTranscriptionFailure": {
+        "Type": "Fail",
+        "Cause": "Transcription job failed",
+        "Error": "TranscribeJobFailed"
+      },
+      "ProcessTranscript": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Parameters": {
+          "FunctionName": "arn:aws:lambda:us-east-1:593793068175:function:ProcessTranscript-Lambda",
+          "Payload": {
+            "TranscriptionJob.$": "$.TranscriptionJob.TranscriptionJob",
+            "callId.$": "$.callId"
+          }
+        },
+        "ResultPath": "$.ProcessedTranscript",
+        "Next": "DetectSentiment",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.Unknown"
+            ],
+            "IntervalSeconds": 10,
+            "MaxAttempts": 3,
+            "BackoffRate": 2
+          }
+        ]
+      },
+      "DetectSentiment": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:comprehend:detectSentiment",
+        "Parameters": {
+          "Text.$": "$.ProcessedTranscript.Payload.TranscriptText",
+          "LanguageCode": "en"
+        },
+        "ResultPath": "$.SentimentResult",
+        "Next": "GenerateInsights",
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Comprehend.ThrottlingException"
+            ],
+            "IntervalSeconds": 5,
+            "MaxAttempts": 5
+          }
+        ]
+      },
+      "GenerateInsights": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Parameters": {
+          "FunctionName": "arn:aws:lambda:us-east-1:593793068175:function:GenerateInsights-Lambda",
+          "Payload": {
+            "callId.$": "$.callId",
+            "Transcript.$": "$.ProcessedTranscript.Payload.TranscriptText",
+            "Sentiment.$": "$.SentimentResult.Sentiment"
+          }
+        },
+        "ResultPath": "$.GenerateInsights",
+        "Next": "SaveResults",
+        "Catch": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "ResultPath": "$.GenerateInsights.Error",
+            "Next": "SaveResults"
+          }
+        ]
+      },
+      "SaveResults": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+        "Parameters": {
+          "Bucket": "metadata-output-bucket1379",
+          "Key.$": "States.Format('processed/{}.json', $.callId)",
+          "Body": {
+            "callId.$": "$.callId",
+            "transcript.$": "$.ProcessedTranscript.Payload.TranscriptText",
+            "sentimentAnalysis.$": "$.SentimentResult",
+            "insights.$": "$.GenerateInsights.Payload.Insights",
+            "processingTime": {
+              "start.$": "$$.Execution.StartTime",
+              "end.$": "$$.State.EnteredTime"
+            }
+          }
+        },
+        "End": true,
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "IntervalSeconds": 5,
+            "MaxAttempts": 3,
+            "BackoffRate": 2
+          }
+        ]
+      }
+    }
+  }
